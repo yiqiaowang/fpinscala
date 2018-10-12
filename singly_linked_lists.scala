@@ -23,9 +23,7 @@ object List {
 
   def setHead[A] (l: List[A], h: A): List[A] = l match {
     case Nil => Cons(h, Nil)
-    case Cons(_, t) => Cons(h, t)
-  }
-
+    case Cons(_, t) => Cons(h, t) } 
   def drop[A](l: List[A], n: Int): List[A] = n match {
     case 0 => l
     case x => drop(List.tail(l), n-1)
@@ -78,6 +76,11 @@ object List {
 
   def append[A](l: List[A], r: List[A]): List[A] = List.foldRight(l, r)(Cons(_, _))
   def concat[A](ls: List[List[A]]): List[A] = List.foldRight(ls, Nil: List[A])(append)
+
+  def addOne(ns: List[Int]): List[Int] = ns match {
+    case Nil => Nil
+    case Cons(h, t) => Cons(h + 1, List.addOne(t))
+  }
 }
 
 object Main {
@@ -85,6 +88,6 @@ object Main {
     var l1 = List(1,2,3,4)
     var l2 = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
     
-    println(List.concat(List(l1, l2)))
+    println(List.addOne(l1))
   }
 }
