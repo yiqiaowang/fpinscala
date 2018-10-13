@@ -81,13 +81,44 @@ object List {
     case Nil => Nil
     case Cons(h, t) => Cons(h + 1, List.addOne(t))
   }
+
+  def toString(ns: List[Double]): List[String] = ns match {
+    case Nil => Nil
+    case Cons(h, t) => Cons(h.toString(), List.toString(t))
+  }
+
+  def map[A, B](ns: List[A])(f: A => B): List[B] = ns match {
+    case Nil => Nil
+    case Cons(h, t) => Cons(f(h), List.map(t)(f))
+  }
+
+  def filter[A](ns: List[A])(f: A => Boolean): List[A] = ns match {
+    case Nil => Nil
+    case Cons(h, t) => if (f(h)) Cons(h, List.filter(t)(f)) else List.filter(t)(f)
+  }
+
+  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] = as match {
+    case Nil => Nil
+    case Cons(h, t) => List.append(f(h), List.flatMap(t)(f))
+  }
+
+  def filter2[A](ns: List[A])(f: A => Boolean): List[A] = {
+    List.flatMap(ns)(a => if (f(a)) List(a) else Nil)
+  }
+
+  def zipWith[A, B, C](xs: List[A], ys: List[B])(f: (A, B) => C): List[C] = (xs, ys) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case (Cons(xh, xt), Cons(yh, yt)) => Cons(f(xh, yh), zipWith(xt, yt)(f))
+  }
 }
 
 object Main {
   def main(args: Array[String]): Unit = {
     var l1 = List(1,2,3,4)
     var l2 = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
+    var l3 = List(1.1, 2.2, 3.3, 4.4)
     
-    println(List.addOne(l1))
+    println(List.zipWith(l1, l1)((a, b) => a * b))
   }
 }
