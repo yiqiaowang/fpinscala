@@ -123,16 +123,3 @@ object List {
   }
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    var l1 = List(1,2,3,4)
-    var l2 = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
-    var l3 = List(1.1, 2.2, 3.3, 4.4)
-    
-    // println(List.hasSubsequence(l1, List(2,3)))
-    println(List.hasSubsequence(List(1,2,3,4), List(3,4)))
-    // println(List.hasSubsequence(l1, List(1,2)))
-    // println(List.hasSubsequence(l1, List(2)))
-    // println(List.hasSubsequence(l1, List(1,3)))
-  }
-}
