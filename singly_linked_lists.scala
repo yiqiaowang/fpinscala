@@ -89,9 +89,7 @@ object List {
 
   def map[A, B](ns: List[A])(f: A => B): List[B] = ns match {
     case Nil => Nil
-    case Cons(h, t) => Cons(f(h), List.map(t)(f))
-  }
-
+    case Cons(h, t) => Cons(f(h), List.map(t)(f)) } 
   def filter[A](ns: List[A])(f: A => Boolean): List[A] = ns match {
     case Nil => Nil
     case Cons(h, t) => if (f(h)) Cons(h, List.filter(t)(f)) else List.filter(t)(f)
@@ -111,6 +109,18 @@ object List {
     case (_, Nil) => Nil
     case (Cons(xh, xt), Cons(yh, yt)) => Cons(f(xh, yh), zipWith(xt, yt)(f))
   }
+
+  def matchSublist[A](main: List[A], sub: List[A]): Boolean = (main, sub) match {
+    case (_, Nil) => true
+    case (Cons(h, t), Cons(x, y)) => h == x && matchSublist(t, y)
+    case _ => false
+  }
+
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = (sup, sub) match {
+    case (_, Nil) => true
+    case (Cons(h, t), sub) => matchSublist(sup, sub) || hasSubsequence(t, sub)
+    case _ => false
+  }
 }
 
 object Main {
@@ -119,6 +129,10 @@ object Main {
     var l2 = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
     var l3 = List(1.1, 2.2, 3.3, 4.4)
     
-    println(List.zipWith(l1, l1)((a, b) => a * b))
+    // println(List.hasSubsequence(l1, List(2,3)))
+    println(List.hasSubsequence(List(1,2,3,4), List(3,4)))
+    // println(List.hasSubsequence(l1, List(1,2)))
+    // println(List.hasSubsequence(l1, List(2)))
+    // println(List.hasSubsequence(l1, List(1,3)))
   }
 }
