@@ -9,6 +9,11 @@ sealed trait Stream[+A] {
     case _ => Nil
   }
 
+  def head: Option[A] = this match {
+    case Cons(h, t) => Some(h())
+    case Empty => None
+  }
+
   def takeWhile(p: A => Boolean): Stream[A] = this match {
     case Empty => Empty
     case Cons(h, t) => if (p(h())) Cons(h, () => t().takeWhile(p)) else Empty
@@ -64,17 +69,55 @@ sealed trait Stream[+A] {
       case _ => None
     }).toList
 
-  // def zipWith[A, B, C](xs: List[A], ys: List[B])(f: (A, B) => C): List[C] = (xs, ys) match {
-  //   case (Nil, _) => Nil
-  //   case (_, Nil) => Nil
-  //   case (Cons(xh, xt), Cons(yh, yt)) => Cons(f(xh, yh), zipWith(xt, yt)(f))
-  // }
-
   def zipWith[B, C](ys: Stream[B])(f: (A, B) => C): List[C] =
     Stream.unfold((this, ys))({
       case (Cons(h, t), Cons(hh, tt)) => Some((f(h(), hh()), (t(), tt())))
       case _ => None
     }).toList
+
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] =
+    Stream.unfold((this, s2))( {
+      case (Empty, Cons(h, t)) => Some((None, Some(h())), (Empty, t()))
+      case (Cons(h, t), Empty) => Some((Some(h()), None), (t(), Empty))
+      case (Cons(h, t), Cons(hh, tt)) => Some((Some(h()), Some(hh())), (t(), tt()))
+      case _ => None
+    } )
+
+  def startsWith[A](s: Stream[A]): Boolean = (this, s) match {
+    case (_, Empty) => true
+    case (Cons(h, t), Cons(x, y)) => h() == x() && t().startsWith(y())
+    case _ => false
+  }
+
+  // How ghetto is this...
+  def tails: Stream[Stream[A]] = {
+    Stream.unfold(
+      this.head match {
+        case None => Empty
+        case Some(a) => Stream.cons(a, this)
+        }) ({
+          case Empty => None
+          case Cons(h, t) => Some((t(), t()))
+        })
+  }
+
+
+  // def hasSubsequence[A](s: Stream[A]): Boolean =
+  //   tails exists (_ startsWith s)
+
+  // Not exactly correct as it doesn't handle what to do on the empty stream
+  def scanRight[B](z: => B)(f: (A, => B) => B): Stream[B] = 
+    Stream.unfold(this)({
+      case Empty => None
+      case Cons(h, t) => Some((f(h(), t().foldRight(z)(f)), t()))
+    })
+
+  // def foldRight[B] (z: => B) (f: (A, => B) => B): B = this match {
+  //   case Cons(h, t) => f(h(), t().foldRight(z)(f))
+  //   case _ => z
+  // }
+  // def scanRight2[B](z: => B)(f: (A, => B) => B): Stream[B] = 
+  //   this.foldRight((z, Stream.cons(z)))((a, b) =>  )
 }
 
 case object Empty extends Stream[Nothing]
@@ -122,6 +165,6 @@ object Stream {
 
 object Main {
   def main(args: Array[String]): Unit = {
-    println(Stream(1,2,3,4).mapUnfold(a => a * 2).take(3))
+    println(Stream(1,2,3).scanRight(0)(_ + _).toList)
   }
 }
