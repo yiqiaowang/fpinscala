@@ -46,6 +46,35 @@ sealed trait Stream[+A] {
   def from(n: Int): Stream[Int] =
     Stream.cons(n, from(n+1))
 
+  def mapUnfold[B] (f: A => B): Stream[B] =
+    Stream.unfold(this)({
+      case Empty => None
+      case Cons(h, t) => Some((f(h()), t()))
+    })
+
+  def takeUnfold (n: Int): List[A] =
+    Stream.unfold((this, n))({
+      case (Cons(h, t), n) if (n > 0) => Some((h(), (t(), n-1)))
+      case _ => None
+    }).toList
+
+  def takeWhileUnfold(f: A => Boolean): List[A] =
+    Stream.unfold(this)({
+      case Cons(h, t) if (f(h())) => Some((h(), t()))
+      case _ => None
+    }).toList
+
+  // def zipWith[A, B, C](xs: List[A], ys: List[B])(f: (A, B) => C): List[C] = (xs, ys) match {
+  //   case (Nil, _) => Nil
+  //   case (_, Nil) => Nil
+  //   case (Cons(xh, xt), Cons(yh, yt)) => Cons(f(xh, yh), zipWith(xt, yt)(f))
+  // }
+
+  def zipWith[B, C](ys: Stream[B])(f: (A, B) => C): List[C] =
+    Stream.unfold((this, ys))({
+      case (Cons(h, t), Cons(hh, tt)) => Some((f(h(), hh()), (t(), tt())))
+      case _ => None
+    }).toList
 }
 
 case object Empty extends Stream[Nothing]
@@ -86,11 +115,13 @@ object Stream {
 
   val ones: Stream[Int] =
     Stream.unfold(1)(n => Some((1, 1)))
+
+
 }
 
 
 object Main {
   def main(args: Array[String]): Unit = {
-    println(Stream.from(1).take(5))
+    println(Stream(1,2,3,4).mapUnfold(a => a * 2).take(3))
   }
 }
