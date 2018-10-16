@@ -39,6 +39,13 @@ sealed trait Stream[+A] {
 
   def flatMap[B](f: A => Stream[B]) = 
     this.foldRight(Stream.empty[A])((a, b) => f(a).append(b))
+
+  def constant[A](a: A): Stream[A] =
+    Stream.cons(a, constant(a))
+
+  def from(n: Int): Stream[Int] =
+    Stream.cons(n, from(n+1))
+
 }
 
 case object Empty extends Stream[Nothing]
@@ -57,4 +64,33 @@ object Stream {
 
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
+
+  val fibs: Stream[Int] = {
+    def helper(a:Int, b:Int): Stream[Int] = Stream.cons(a, helper(b, a + b))
+    helper(0, 1)
+  }
+
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+    case None => Empty
+    case Some((a, s)) => Stream.cons(a, unfold(s)(f))
+  }
+
+  val fibs2: Stream[Int] =
+    Stream.unfold((0, 1))({case(a: Int, b: Int) => Some((a, (b, a + b)))})
+
+  def from(n: Int): Stream[Int] = 
+    Stream.unfold(n)((n: Int) => Some((n, n+1)))
+
+  def constant(n: Int): Stream[Int] =
+    Stream.unfold(n)(n => Some((n, n)))
+
+  val ones: Stream[Int] =
+    Stream.unfold(1)(n => Some((1, 1)))
+}
+
+
+object Main {
+  def main(args: Array[String]): Unit = {
+    println(Stream.from(1).take(5))
+  }
 }
