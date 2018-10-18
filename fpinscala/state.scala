@@ -67,6 +67,33 @@ object RNG {
 
   def doubleMap: Rand[Double] =
     map(nonNegativeInt)((i: Int) => i.toDouble / Int.MaxValue)
+
+  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
+    rng => {
+      val (a, rngA) = ra(rng)
+      val (b, rngB) = rb(rngA)
+      (f(a, b), rngB) 
+    }
+  
+  def both[A, B](ra: Rand[A], rb: Rand[B]): Rand[(A, B)] =
+    map2(ra, rb)((_, _))
+
+  def randIntDouble: Rand[(Int, Double)] =
+    both(int, double)
+
+  def randDoubleInt: Rand[(Double, Int)] =
+    both(double, int)
+
+  // def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
+  //   fs.foldRight(rng => (Nil, rng))((a, b) => {r => (a :: )})
+  //     def sequenceViaFoldRight[S,A](sas: List[State[S, A]]): State[S, List[A]] =
+  //         sas.foldRight(unit[S, List[A]](List()))((f, acc) => f.map2(acc)(_ :: _))
+
+  def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] =
+    rng => {
+      val (a, rngA) = f(rng) 
+      g(a)(rngA)
+    }
 }
 
 object Main {
