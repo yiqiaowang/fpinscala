@@ -13,6 +13,7 @@ case class SimpleRNG(seed: Long) extends RNG {
 
 
 object RNG {
+  type Rand[+A] = RNG => (A, RNG)
   def nonNegativeInt(rng: RNG): (Int, RNG) = { 
     val (n, nextRNG) = rng.nextInt
     (n, nextRNG) match {
@@ -25,14 +26,52 @@ object RNG {
     val (n, nextRNG) = RNG.nonNegativeInt(rng)
     (n.toDouble / Int.MaxValue, nextRNG)
   }
-  def intDouble(rng: RNG): ((Int,Double), RNG)
-  def doubleInt(rng: RNG): ((Double,Int), RNG)
-  def double3(rng: RNG): ((Double,Double,Double), RNG)
+  def intDouble(rng: RNG): ((Int,Double), RNG) = {
+    val (int, nextRNG) = rng.nextInt
+    val (double, callerRNG) = RNG.double(nextRNG)
+    ((int, double), callerRNG)
+  }
+  def doubleInt(rng: RNG): ((Double,Int), RNG) = {
+    val (double, nextRNG) = RNG.double(rng)
+    val (int, callerRNG) = nextRNG.nextInt
+    ((double, int), callerRNG)
+  }
+  def double3(rng: RNG): ((Double,Double,Double), RNG) = {
+    val (double1, nextRNG1) = RNG.double(rng)
+    val (double2, nextRNG2) = RNG.double(nextRNG1)
+    val (double3, nextRNG3) = RNG.double(nextRNG2)
+    ((double1, double2, double3), nextRNG3)
+  }
+
+  def ints(count: Int)(rng: RNG): (List[Int], RNG) = {
+    if (count == 0)
+      (Nil, rng)
+    else {
+      val (n, nextRNG) = rng.nextInt
+      (n :: RNG.ints(count - 1)(nextRNG)._1, nextRNG)
+    }
+  }
+
+  val int: Rand[Int] = _.nextInt
+
+  def unit[A](a: A): Rand[A] = rng => (a, rng)
+
+  def map[A, B](s: Rand[A])(f: A => B): Rand[B] =
+    rng => {
+      val (a, rng2) = s(rng)
+      (f(a), rng2)
+    }
+
+  def nonNegativeEven: Rand[Int] = 
+    map(nonNegativeInt)(i => i - i % 2)
+
+  def doubleMap: Rand[Double] =
+    map(nonNegativeInt)((i: Int) => i.toDouble / Int.MaxValue)
 }
 
 object Main {
   def main(args: Array[String]): Unit = { 
     val rng = SimpleRNG(442)
-    println(RNG.double(rng))
+    println(RNG.ints(5)(rng))
   } 
 }
