@@ -13,7 +13,8 @@ case class SimpleRNG(seed: Long) extends RNG {
 
 
 object RNG {
-  type Rand[+A] = RNG => (A, RNG)
+  type Rand[A] = State[RNG, A]
+  type State[S, +A] = S => (A, S)
   def nonNegativeInt(rng: RNG): (Int, RNG) = { 
     val (n, nextRNG) = rng.nextInt
     (n, nextRNG) match {
@@ -110,6 +111,19 @@ object RNG {
   def rollDie: Rand[Int] = nonNegativeLessThan(6)
 
   def rollDie2: Rand[Int] = map(nonNegativeLessThan(6))(_ + 1)
+}
+
+case class State[S, +A](run: S => (A, S)) {
+  // def unit  
+  // def map
+  // def map2
+  // def flatMap
+  // def sequence
+
+}
+
+object State {
+  def unit[S, A](a: A): State[S, A] = State(s => (a, s))
 }
 
 object Main {
