@@ -119,7 +119,6 @@ case class State[S, +A](run: S => (A, S)) {
   // def map2
   // def flatMap
   // def sequence
-
 }
 
 object State {

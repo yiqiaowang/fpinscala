@@ -31,6 +31,10 @@ object Parallel {
       Par.map2(sum(1), sum(2))(_ + _)
     }
   }
+
+  // Type signature for Par.map2 is something similar to  ->
+  // def map2[A, B, C](a: Par[A], b: Par[B], f:(A, B) => C): C
+
   // unit creates the parallel computation
   // get executes the parallel computation
 }
