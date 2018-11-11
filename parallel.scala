@@ -86,5 +86,6 @@ object Par {
   def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] = fork {
     parMap(as)(a => if (f(a)) a else List())
   }
+
 }
 
